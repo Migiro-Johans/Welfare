@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/app.js",
+      "src": "package.json",
       "use": "@vercel/node"
     }
   ],
@@ -14,5 +14,6 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "installCommand": "npm install --production=false"
 }
