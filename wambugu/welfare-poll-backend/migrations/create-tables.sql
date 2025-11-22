@@ -1,5 +1,5 @@
--- Create database
-CREATE DATABASE IF NOT EXISTS welfare_poll;
+-- Note: Database should already exist (created by Supabase/Docker)
+-- Skip CREATE DATABASE for Supabase/managed databases
 
 -- Create members table
 CREATE TABLE IF NOT EXISTS members (

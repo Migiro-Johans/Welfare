@@ -1,0 +1,46 @@
+# Vercel Ignore File
+# Files and directories to exclude from Vercel deployment
+
+# Development files
+node_modules
+.env
+.env.local
+.env.development
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+*.md
+!README.md
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Migrations (run manually on database)
+migrations/*.sql
+
+# Local database data
+postgres-data
