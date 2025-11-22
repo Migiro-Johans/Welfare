@@ -41,31 +41,19 @@ app.get('/', (req, res) => {
   });
 });
 
-// Lazy-load routes to avoid initialization issues
-app.use('/api/auth', (req, res, next) => {
-  const authRoutes = require('../src/routes/auth');
-  authRoutes(req, res, next);
-});
+// Import routes
+const authRoutes = require('../src/routes/auth');
+const voteRoutes = require('../src/routes/votes');
+const pollRoutes = require('../src/routes/poll');
+const adminRoutes = require('../src/routes/admin');
+const passwordResetRoutes = require('../src/routes/passwordReset');
 
-app.use('/api/votes', (req, res, next) => {
-  const voteRoutes = require('../src/routes/votes');
-  voteRoutes(req, res, next);
-});
-
-app.use('/api/poll', (req, res, next) => {
-  const pollRoutes = require('../src/routes/poll');
-  pollRoutes(req, res, next);
-});
-
-app.use('/api/admin', (req, res, next) => {
-  const adminRoutes = require('../src/routes/admin');
-  adminRoutes(req, res, next);
-});
-
-app.use('/api/password-reset', (req, res, next) => {
-  const passwordResetRoutes = require('../src/routes/passwordReset');
-  passwordResetRoutes(req, res, next);
-});
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/votes', voteRoutes);
+app.use('/api/poll', pollRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/password-reset', passwordResetRoutes);
 
 // 404 handler
 app.use((req, res) => {
