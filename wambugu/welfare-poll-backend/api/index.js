@@ -1,32 +1,13 @@
+// Vercel Serverless Entry Point
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
-
-const { testConnection } = require('../src/config/database');
-const { verifyEmailConfig } = require('../src/config/email');
-const { errorHandler, notFound } = require('../src/middleware/errorHandler');
-const { generalLimiter } = require('../src/middleware/rateLimiter');
-
-// Simple console logger for serverless
-const logger = {
-  info: (msg, ...args) => console.log('[INFO]', msg, ...args),
-  error: (msg, ...args) => console.error('[ERROR]', msg, ...args),
-  warn: (msg, ...args) => console.warn('[WARN]', msg, ...args)
-};
-
-// Import routes
-const authRoutes = require('../src/routes/auth');
-const voteRoutes = require('../src/routes/votes');
-const pollRoutes = require('../src/routes/poll');
-const adminRoutes = require('../src/routes/admin');
-const passwordResetRoutes = require('../src/routes/passwordReset');
 
 // Initialize express app
 const app = express();
 
-// Middleware
+// Basic middleware - keep it simple for serverless
 app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
@@ -34,10 +15,6 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('combined', {
-  stream: { write: message => logger.info(message.trim()) }
-}));
-app.use(generalLimiter);
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -64,42 +41,48 @@ app.get('/', (req, res) => {
   });
 });
 
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/votes', voteRoutes);
-app.use('/api/poll', pollRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/password-reset', passwordResetRoutes);
+// Lazy-load routes to avoid initialization issues
+app.use('/api/auth', (req, res, next) => {
+  const authRoutes = require('../src/routes/auth');
+  authRoutes(req, res, next);
+});
 
-// Error handling
-app.use(notFound);
-app.use(errorHandler);
+app.use('/api/votes', (req, res, next) => {
+  const voteRoutes = require('../src/routes/votes');
+  voteRoutes(req, res, next);
+});
 
-// Initialize database connection on cold start
-let isInitialized = false;
+app.use('/api/poll', (req, res, next) => {
+  const pollRoutes = require('../src/routes/poll');
+  pollRoutes(req, res, next);
+});
 
-const initializeApp = async () => {
-  if (isInitialized) return;
+app.use('/api/admin', (req, res, next) => {
+  const adminRoutes = require('../src/routes/admin');
+  adminRoutes(req, res, next);
+});
 
-  try {
-    // Test database connection
-    await testConnection();
+app.use('/api/password-reset', (req, res, next) => {
+  const passwordResetRoutes = require('../src/routes/passwordReset');
+  passwordResetRoutes(req, res, next);
+});
 
-    // Verify email configuration (non-blocking)
-    verifyEmailConfig().catch(err =>
-      logger.warn('Email verification failed:', err.message)
-    );
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
+});
 
-    isInitialized = true;
-    logger.info('Serverless function initialized successfully');
-  } catch (error) {
-    logger.error('Failed to initialize serverless function:', error);
-    // Don't throw - allow the function to try serving requests
-  }
-};
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error'
+  });
+});
 
-// Initialize on import
-initializeApp();
-
-// Export for Vercel serverless
+// Export for Vercel
 module.exports = app;
