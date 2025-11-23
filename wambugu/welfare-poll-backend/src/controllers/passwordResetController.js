@@ -215,6 +215,8 @@ const adminGenerateTemporaryPassword = async (req, res) => {
   try {
     const { member_id } = req.body;
 
+    logger.info(`Generating temp password for member_id: ${member_id}`);
+
     if (!member_id) {
       return res.status(400).json({
         success: false,
@@ -225,15 +227,23 @@ const adminGenerateTemporaryPassword = async (req, res) => {
     // Find the member
     const member = await Member.findOne({
       where: {
-        id: member_id,
-        is_active: true
+        id: member_id
       }
     });
 
     if (!member) {
+      logger.error(`Member not found with ID: ${member_id}`);
       return res.status(404).json({
         success: false,
         message: 'Member not found'
+      });
+    }
+
+    if (!member.is_active) {
+      logger.error(`Member found but inactive: ${member.email}`);
+      return res.status(400).json({
+        success: false,
+        message: 'Member account is inactive'
       });
     }
 

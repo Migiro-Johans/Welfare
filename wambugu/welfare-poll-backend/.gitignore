@@ -1,5 +1,8 @@
 node_modules/
 .env
+.env.local
+.env.production
+.env.vercel
 .DS_Store
 *.log
 coverage/
@@ -9,5 +12,3 @@ build/
 .idea/
 *.swp
 *.swo
-.env.local
-.env.production

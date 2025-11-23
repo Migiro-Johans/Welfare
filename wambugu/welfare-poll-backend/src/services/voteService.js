@@ -61,15 +61,18 @@ const getResults = async () => {
       PollSettings.findOne()
     ]);
 
-    const participationRate = calculatePercentage(totalVotes, totalMembers);
+    const effectiveTotalMembers = pollSettings?.total_expected_members || totalMembers;
+    const participationRate = calculatePercentage(totalVotes, effectiveTotalMembers);
     const option1Percentage = calculatePercentage(option1Votes, totalVotes);
     const option2Percentage = calculatePercentage(option2Votes, totalVotes);
 
-    const minimumVotesRequired = pollSettings?.minimum_votes_option2 || 150;
+    // Calculate minimum votes required (100% of total members)
+    const minimumVotesRequired = effectiveTotalMembers;
     const threshold_met = option2Votes >= minimumVotesRequired;
 
     return {
-      total_members: totalMembers,
+      total_members: effectiveTotalMembers,
+      registered_members: totalMembers,
       total_votes: totalVotes,
       participation_rate: participationRate,
       results: {

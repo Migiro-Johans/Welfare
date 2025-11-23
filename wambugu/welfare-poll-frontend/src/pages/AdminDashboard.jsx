@@ -28,6 +28,9 @@ const AdminDashboard = () => {
     try {
       const response = await adminAPI.getAnalytics();
       setAnalytics(response.data.data);
+      if (response.data.data.total_members) {
+        setTotalMembers(response.data.data.total_members);
+      }
     } catch (err) {
       setError('Failed to fetch analytics');
     }
@@ -113,7 +116,9 @@ const AdminDashboard = () => {
       setSuccess(`Temporary password generated for ${member.full_name}`);
       setTimeout(() => setSuccess(''), 5000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to generate temporary password');
+      console.error('Generate temp password error:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to generate temporary password';
+      setError(errorMessage);
     }
   };
 
@@ -451,20 +456,19 @@ const AdminDashboard = () => {
                 {votes.map((vote) => (
                   <tr key={vote.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{vote.Member.full_name}</div>
+                      <div className="text-sm font-medium text-gray-900">{vote.member?.full_name || 'Unknown'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{vote.Member.member_id}</div>
+                      <div className="text-sm text-gray-500">{vote.member?.member_id || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{vote.Member.email}</div>
+                      <div className="text-sm text-gray-500">{vote.member?.email || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        vote.vote_option === 1
-                          ? 'bg-indigo-100 text-indigo-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}>
+                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${vote.vote_option === 1
+                        ? 'bg-indigo-100 text-indigo-800'
+                        : 'bg-green-100 text-green-800'
+                        }`}>
                         Option {vote.vote_option}
                       </span>
                     </td>
@@ -538,11 +542,10 @@ const AdminDashboard = () => {
                       <button
                         key={i + 1}
                         onClick={() => setCurrentPage(i + 1)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === i + 1
-                            ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                        }`}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === i + 1
+                          ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                          }`}
                       >
                         {i + 1}
                       </button>

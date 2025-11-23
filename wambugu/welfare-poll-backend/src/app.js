@@ -1,4 +1,9 @@
 require('dotenv').config();
+const validateEnv = require('./config/env');
+
+// Validate environment variables
+validateEnv();
+
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -63,6 +68,20 @@ app.use('/api/votes', voteRoutes);
 app.use('/api/poll', pollRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/password-reset', passwordResetRoutes);
+
+// Serve static assets in production
+if (process.env.NODE_ENV === 'production') {
+  // Set static folder
+  app.use(express.static(path.join(__dirname, '../public')));
+
+  // Any other route loads the index.html
+  app.get('*', (req, res, next) => {
+    if (req.url.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.resolve(__dirname, '../public', 'index.html'));
+  });
+}
 
 // Error handling
 app.use(notFound);
