@@ -1,0 +1,43 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 🔨 Build Project
+        run: |
+          cd wambugu/welfare-poll-backend
+          chmod +x build_deployment.sh
+          ./build_deployment.sh
+
+      - name: 🔑 Inject Production Environment Variables
+        run: |
+          echo "${{ secrets.ENV_PRODUCTION }}" > wambugu/welfare_poll_build/.env
+
+      - name: 📄 Add .cpanel.yml
+        run: |
+          # Copy the .cpanel.yml to the build directory
+          cp wambugu/.cpanel.yml wambugu/welfare_poll_build/
+
+      - name: 🚀 Deploy to Release Branch
+        uses: s0/git-publish-subdir-action@develop
+        env:
+          REPO: self
+          BRANCH: release
+          FOLDER: wambugu/welfare_poll_build
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MESSAGE: "Build: ({sha}) {msg}"
